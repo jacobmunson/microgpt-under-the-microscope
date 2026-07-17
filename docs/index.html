@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicroGPT Under the Microscope</title>
+  <!-- SEO Tags -->
+  <meta name="description" content="Interactive demonstrations and playgrounds showcasing how tiny neural networks learn, store, and recall sequential data.">
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 29, 49, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #4f46e5;
+      --accent-glow: rgba(79, 70, 229, 0.35);
+      --accent-hover: #6366f1;
+      --accent-secondary: #06b6d4;
+      --secondary-glow: rgba(6, 182, 212, 0.35);
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.1) 0px, transparent 50%);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1040px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Glow effect behind the title */
+    .glow-header {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 120px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      margin-bottom: 56px;
+      z-index: 1;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 64px;
+      z-index: 1;
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 2.5rem;
+      }
+    }
+
+    /* Interactive Card design */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: left;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 20px;
+      padding: 1px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-storybook:hover {
+      box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+    }
+
+    .card-deploy:hover {
+      box-shadow: 0 20px 40px rgba(6, 182, 212, 0.15);
+    }
+
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+
+    .badge-storybook {
+      background: rgba(79, 70, 229, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(79, 70, 229, 0.3);
+    }
+
+    .badge-deploy {
+      background: rgba(6, 182, 212, 0.15);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .card-description {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      flex-grow: 1;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+
+    .action-btn {
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      transition: transform 0.3s;
+    }
+
+    .action-btn svg {
+      transition: transform 0.3s;
+    }
+
+    .card-storybook .action-btn {
+      color: #a5b4fc;
+    }
+
+    .card-deploy .action-btn {
+      color: #67e8f9;
+    }
+
+    .card:hover .action-btn svg {
+      transform: translateX(4px);
+    }
+
+    .tech-specs {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    footer {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.4);
+      z-index: 1;
+      position: relative;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 24px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+      transition: color 0.3s, border-color 0.3s;
+    }
+
+    footer a:hover {
+      color: #ffffff;
+      border-bottom-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="glow-header"></div>
+    
+    <header>
+      <h1 id="main-title">MicroGPT under the Microscope</h1>
+      <p class="subtitle">Interactive simulations revealing the inner mechanics of small neural networks during training and deployment.</p>
+    </header>
+
+    <main class="grid">
+      
+      <!-- Card 1: Storybook -->
+      <a href="storybook.html" class="card card-storybook" id="card-storybook">
+        <div>
+          <span class="card-badge badge-storybook">Module A</span>
+          <h2>Memorization Storybook</h2>
+          <p class="card-description">Watch a 1-layer GPT learn to memorize a single sentence token-by-token in real time. Inspect attention distributions, weight transformations, and activations step-by-step.</p>
+        </div>
+        <div class="card-footer">
+          <span class="action-btn">
+            Open Storybook 
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </span>
+          <span class="tech-specs">Seq length: 8 • 4.2k params</span>
+        </div>
+      </a>
+
+      <!-- Card 2: Training vs Deployment -->
+      <a href="deploy.html" class="card card-deploy" id="card-deploy">
+        <div>
+          <span class="card-badge badge-deploy">Module B</span>
+          <h2>Training vs. Deployment</h2>
+          <p class="card-description">Experience the transition from training to frozen deployment. Train on grouped corpora, watch loss curves decrease, and test the final model to witness how sequence structure overrides word meaning.</p>
+        </div>
+        <div class="card-footer">
+          <span class="action-btn">
+            Open Playground
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </span>
+          <span class="tech-specs">35 Labeled items • 300 steps</span>
+        </div>
+      </a>
+
+    </main>
+
+    <footer>
+      <p>Hosted statically on GitHub Pages • Explore the source code on <a href="https://github.com/jacobmunson/microgpt-under-the-microscope" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+    </footer>
+  </div>
+
+</body>
+</html>
